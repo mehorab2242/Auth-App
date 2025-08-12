@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\Auth;
 class AuthController extends Controller
 {
     //
+    public function index()
+    {
+        return view('auth.index');
+    }
     public function showLogin(Request $request)
     {
         return view('auth.login');
@@ -31,6 +35,6 @@ class AuthController extends Controller
 
         $user = User::create($validated);
         Auth::login($user);
-        return redirect('/');
+        return redirect()->route('auth.index');
     }
 }
