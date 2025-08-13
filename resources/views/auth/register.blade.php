@@ -65,38 +65,44 @@
 <h2>
     Register page
 </h2>
-<form action="action_page.php">
+<button onclick="window.location.href='/'">Home</button>
+<button onclick="window.location.href='login'">Login</button>
+
+<form action="{{ route('register') }}" method="POST">
+    @csrf
     <div class="container">
         <h1>Register</h1>
         <p>Please fill in this form to create an account.</p>
         <hr>
-        <label for="email"><b>Namw</b></label>
+
+        <label for="name"><b>Name</b></label>
         <input type="text" placeholder="Enter your name" name="name" id="name" required>
 
         <label for="email"><b>Email</b></label>
-        <input type="text" placeholder="Enter Email" name="email" id="email" required>
+        <input type="email" placeholder="Enter Email" name="email" id="email" required>
 
-        <label for="psw"><b>Password</b></label>
-        <input type="password" placeholder="Enter Password" name="psw" id="psw" required>
+        <label for="password"><b>Password</b></label>
+        <input type="password" placeholder="Enter Password" name="password" id="password" required>
 
-        <label for="psw-repeat"><b>Repeat Password</b></label>
-        <input type="password" placeholder="Repeat Password" name="psw-repeat" id="psw-repeat" required>
+        <label for="password_confirmation"><b>Repeat Password</b></label>
+        <input type="password" placeholder="Repeat Password" name="password_confirmation" id="password_confirmation" required>
         <hr>
 
         <p>By creating an account you agree to our <a href="#">Terms & Privacy</a>.</p>
         <button type="submit" class="registerbtn">Register</button>
     </div>
-    <!--Validation errors -->
+
+    <!-- Validation errors -->
     @if($errors->any())
         <ul class="px-4 py-2 bg-red-100">
-            @foreach(@$errors->all() as $error)
-                <li class="my-2 text-red-500">{{$error}}</li>
+            @foreach($errors->all() as $error)
+                <li class="my-2 text-red-500">{{ $error }}</li>
             @endforeach
         </ul>
     @endif
 
     <div class="container signin">
-        <p>Already have an account? <a href="#">Sign in</a>.</p>
+        <p>Already have an account? <a href="{{ route('login') }}">Sign in</a>.</p>
     </div>
 </form>
 
