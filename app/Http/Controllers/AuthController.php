@@ -15,11 +15,11 @@ class AuthController extends Controller
     {
         return view('auth.index');
     }
-    public function showLogin(Request $request)
+    public function showLogin()
     {
         return view('auth.login');
     }
-    public function showRegister(Request $request)
+    public function showRegister()
     {
         return view('auth.register');
     }
