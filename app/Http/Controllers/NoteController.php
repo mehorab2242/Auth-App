@@ -50,7 +50,9 @@ class NoteController extends Controller
     public function show(Note $note)
     {
         //
-        $this->authorize('view', $note);
+        if ($note->user_id !== auth()->id()) {
+            return redirect()->route('notes.index')->with('error', 'You are not authorized to edit this page.');
+        }
         return view('notes.show', compact('note'));
     }
 
@@ -90,7 +92,9 @@ class NoteController extends Controller
     public function destroy(Note $note)
     {
         //
-        $this->authorize('delete', $note);
+        if ($note->user_id !== auth()->id()) {
+            return redirect()->route('notes.index')->with('error', 'You are not authorized to edit this page.');
+        }
         $note->delete();
         return redirect()->route('notes.index')->with('success', 'Note deleted successfully.');
     }
