@@ -38,13 +38,17 @@
 <button onclick="window.location.href='register'">Register</button>
 @endguest
 @auth
-<span class="border-r-2 pr-2">
-    Welcome to the page, {{Auth::user()->name}}
+    <span class="border-r-2 pr-2">
+    Welcome to the page, {{ Auth::user()->name }}
 </span>
-<form action="{{route('logout')}}" method="POST" class="m-0">
-    @csrf
-    <button class="btn">Logout</button>
-</form>
+    <div class="flex gap-2 items-center">
+        <a href="{{ route('notes.index') }}" class="btn">Notes</a>
+
+        <form action="{{ route('logout') }}" method="POST" class="m-0">
+            @csrf
+            <button class="btn">Logout</button>
+        </form>
+    </div>
 @endauth
 
 </body>
