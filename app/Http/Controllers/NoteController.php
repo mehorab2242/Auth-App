@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Note;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+
 
 class NoteController extends Controller
 {
@@ -31,15 +34,21 @@ class NoteController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        //Validate inputs
         $request->validate([
            'title' => 'required|string|max:255',
            'description' => 'required|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg',
         ]);
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('notes', 'public');
+        }
         Note::create([
             'user_id' => Auth::id(),
             'title' => $request->title,
-            'description' => $request->description
+            'description' => $request->description,
+            'image' => $imagePath
         ]);
         return redirect()->route('notes.index')->with('success', 'Note created successfully.');
     }
@@ -73,15 +82,28 @@ class NoteController extends Controller
      */
     public function update(Request $request, Note $note)
     {
-        //
+        //User Validate
         if ($note->user_id !== auth()->id()) {
             return redirect()->route('notes.index')->with('error', 'You are not authorized to edit this page.');
         }
-        $request->validate([
+        //Validate
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg',
         ]);
-        $note->update($request->all());
+        // 2. Handle new image if uploaded
+        if ($request->hasFile('image')) {
+            // Delete old image if exists
+            if ($note->image && Storage::disk('public')->exists($note->image)) {
+                Storage::disk('public')->delete($note->image);
+            }
+
+            // Store new image
+            $validated['image'] = $request->file('image')->store('notes', 'public');
+        }
+        //Update note
+        $note->update($validated);
 
         return redirect()->route('notes.index')->with('success', 'Note updated successfully.');
     }

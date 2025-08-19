@@ -13,7 +13,15 @@ class Note extends Model
         'title',
         'description',
         'user_id',
+        'image'
     ];
+    protected $appends = ['full_image_url'];
+    public function getFullImageUrlAttribute(){
+        if ($this->image){
+            return asset('storage/'. $this->image);
+        }
+        return null;
+    }
     /**
      * Relationship: a note belongs to a user
      */

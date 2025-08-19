@@ -15,7 +15,7 @@
             </div>
         @endif
 
-        <form action="{{ route('notes.store') }}" method="POST" class="space-y-4">
+        <form action="{{ route('notes.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
 
             <div>
@@ -30,6 +30,12 @@
                 <textarea id="description" name="description" rows="6" required
                           class="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring"
                           placeholder="Write your note here...">{{ old('description') }}</textarea>
+            </div>
+
+            <div>
+                <label for="image" class="block text-sm font-medium mb-1">Image</label>
+                <input type="file" id="image" name="image"
+                       class="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring">
             </div>
 
             <div class="flex items-center gap-3">

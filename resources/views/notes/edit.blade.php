@@ -15,7 +15,7 @@
             </div>
         @endif
 
-        <form action="{{ route('notes.update', $note) }}" method="POST" class="space-y-4">
+        <form action="{{ route('notes.update', $note) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
             @method('PUT')
 
@@ -36,6 +36,23 @@
                           rows="6"
                           required
                           class="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring">{{ old('description', $note->description) }}</textarea>
+            </div>
+
+            {{-- Image upload --}}
+            <div>
+                <label for="image" class="block text-sm font-medium mb-1">Image</label>
+                <input type="file" id="image" name="image"
+                       class="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring">
+
+                {{-- Show existing image if available --}}
+                @if($note->full_image_url)
+                    <div class="mt-3">
+                        <p class="text-sm text-gray-600 mb-1">Current Image:</p>
+                        <img src="{{ $note->full_image_url }}"
+                             alt="Note Image"
+                             class="w-40 h-40 object-cover rounded-lg border">
+                    </div>
+                @endif
             </div>
 
             <div class="flex items-center gap-3">
