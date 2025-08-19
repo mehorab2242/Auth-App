@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Mockery\Matcher\Not;
 
 
 class NoteController extends Controller
@@ -16,8 +17,20 @@ class NoteController extends Controller
      */
     public function index()
     {
-        $notes = Note::where('user_id', Auth::id())->latest()->get();
-        return view('notes.index', ['notes' => $notes]);
+        try {
+            $notes = Note::where('user_id', Auth::id())->latest()->get();
+
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $notes
+                ]);
+            }
+
+            return view('notes.index', ['notes' => $notes]);
+        } catch (\Exception $e) {
+            return $this->handleException($e, 'Failed to fetch notes');
+        }
     }
 
     /**
@@ -25,7 +38,6 @@ class NoteController extends Controller
      */
     public function create()
     {
-        //
         return view('notes.create');
     }
 
@@ -34,46 +46,69 @@ class NoteController extends Controller
      */
     public function store(Request $request)
     {
-        //Validate inputs
-        $request->validate([
-           'title' => 'required|string|max:255',
-           'description' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg',
-        ]);
-        $imagePath = null;
-        if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('notes', 'public');
-        }
-        Note::create([
-            'user_id' => Auth::id(),
-            'title' => $request->title,
-            'description' => $request->description,
-            'image' => $imagePath
-        ]);
-        return redirect()->route('notes.index')->with('success', 'Note created successfully.');
-    }
+        try {
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'required|string',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg',
+            ]);
 
+            $imagePath = null;
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('notes', 'public');
+            }
+
+            $note = Note::create([
+                'user_id' => Auth::id(),
+                'title' => $validated['title'],
+                'description' => $validated['description'],
+                'image' => $imagePath
+            ]);
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Note created successfully',
+                    'data' => $note
+                ]);
+            }
+
+            return redirect()->route('notes.index')->with('success', 'Note created successfully.');
+        } catch (\Exception $e) {
+            return $this->handleException($e, 'Failed to create note');
+        }
+    }
     /**
      * Display the specified resource.
      */
     public function show(Note $note)
     {
-        //
-        if ($note->user_id !== auth()->id()) {
-            return redirect()->route('notes.index')->with('error', 'You are not authorized to edit this page.');
-        }
-        return view('notes.show', compact('note'));
-    }
+        try {
+            if ($note->user_id !== Auth::id()) {
+                return $this->unauthorizedResponse();
+            }
 
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $note
+                ]);
+            }
+
+            return view('notes.show', compact('note'));
+        } catch (\Exception $e) {
+            return $this->handleException($e, 'Failed to fetch note');
+        }
+    }
     /**
      * Show the form for editing the specified resource.
      */
     public function edit(Note $note)
     {
-        //
-        if ($note->user_id !== auth()->id()) {
-            return redirect()->route('notes.index')->with('error', 'You are not authorized to edit this page.');
+        if ($note->user_id !== Auth::id()) {
+            return redirect()->route('notes.index')->with('error', 'Unauthorized');
         }
+
         return view('notes.edit', compact('note'));
     }
 
@@ -82,30 +117,38 @@ class NoteController extends Controller
      */
     public function update(Request $request, Note $note)
     {
-        //User Validate
-        if ($note->user_id !== auth()->id()) {
-            return redirect()->route('notes.index')->with('error', 'You are not authorized to edit this page.');
-        }
-        //Validate
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg',
-        ]);
-        // 2. Handle new image if uploaded
-        if ($request->hasFile('image')) {
-            // Delete old image if exists
-            if ($note->image && Storage::disk('public')->exists($note->image)) {
-                Storage::disk('public')->delete($note->image);
+        try {
+            if ($note->user_id !== Auth::id()) {
+                return $this->unauthorizedResponse();
             }
 
-            // Store new image
-            $validated['image'] = $request->file('image')->store('notes', 'public');
-        }
-        //Update note
-        $note->update($validated);
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'required|string',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg',
+            ]);
 
-        return redirect()->route('notes.index')->with('success', 'Note updated successfully.');
+            if ($request->hasFile('image')) {
+                if ($note->image && Storage::disk('public')->exists($note->image)) {
+                    Storage::disk('public')->delete($note->image);
+                }
+                $validated['image'] = $request->file('image')->store('notes', 'public');
+            }
+
+            $note->update($validated);
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Note updated successfully',
+                    'data' => $note
+                ]);
+            }
+
+            return redirect()->route('notes.index')->with('success', 'Note updated successfully.');
+        } catch (\Exception $e) {
+            return $this->handleException($e, 'Failed to update note');
+        }
     }
 
     /**
@@ -113,11 +156,54 @@ class NoteController extends Controller
      */
     public function destroy(Note $note)
     {
-        //
-        if ($note->user_id !== auth()->id()) {
-            return redirect()->route('notes.index')->with('error', 'You are not authorized to edit this page.');
+        try {
+            if ($note->user_id !== Auth::id()) {
+                return $this->unauthorizedResponse();
+            }
+
+            if ($note->image && Storage::disk('public')->exists($note->image)) {
+                Storage::disk('public')->delete($note->image);
+            }
+
+            $note->delete();
+
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Note deleted successfully'
+                ]);
+            }
+
+            return redirect()->route('notes.index')->with('success', 'Note deleted successfully.');
+        } catch (\Exception $e) {
+            return $this->handleException($e, 'Failed to delete note');
         }
-        $note->delete();
-        return redirect()->route('notes.index')->with('success', 'Note deleted successfully.');
+    }
+    /**
+     * Helper: Handle exception
+     */
+    private function handleException(\Exception $e, string $message)
+    {
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => $message,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+
+        return redirect()->route('notes.index')->with('error', $message);
+    }
+
+    private function unauthorizedResponse()
+    {
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ], 403);
+        }
+
+        return redirect()->route('notes.index')->with('error', 'Unauthorized');
     }
 }

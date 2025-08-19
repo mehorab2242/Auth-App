@@ -18,12 +18,13 @@
         {{-- Show image if exists --}}
         @if($note->full_image_url)
             <div class="mb-6">
-                <img src="{{ $note->full_image_url }}"
-                     alt="Note Image"
-                     class="w-[400px] h-[300px] object-contain rounded-lg shadow"
+                <div class="w-[400px] h-[300px] mx-auto rounded-lg shadow flex items-center justify-center overflow-hidden bg-gray-50">
+                    <img src="{{ $note->full_image_url }}"
+                         alt="Note Image"
+                         class="w-full h-full object-contain select-none pointer-events-none">
+                </div>
             </div>
         @endif
-
 
         <div class="prose max-w-none text-gray-800 mb-6">
             {{ $note->description }}
