@@ -1,49 +1,71 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="max-w-xl mx-auto p-6 bg-white rounded-lg shadow">
-        <h1 class="text-2xl font-bold mb-4">Create Note</h1>
+    <div class="card shadow-sm mx-auto" style="max-width: 600px;">
+        <div class="card-body">
+            <h1 class="h4 fw-bold mb-4">Create Note</h1>
 
-        {{-- Validation errors --}}
-        @if ($errors->any())
-            <div class="mb-4 rounded-lg border p-4 bg-red-50">
-                <ul class="list-disc list-inside text-red-700">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+            {{-- Validation errors --}}
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
-        <form action="{{ route('notes.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
-            @csrf
+            <form action="{{ route('notes.store') }}" method="POST" enctype="multipart/form-data">
+                @csrf
 
-            <div>
-                <label for="title" class="block text-sm font-medium mb-1">Title</label>
-                <input type="text" id="title" name="title" value="{{ old('title') }}" required
-                       class="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring"
-                       placeholder="e.g., Meeting notes">
-            </div>
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title</label>
+                    <input type="text"
+                           id="title"
+                           name="title"
+                           value="{{ old('title') }}"
+                           class="form-control @error('title') is-invalid @enderror"
+                           placeholder="e.g., Meeting notes"
+                           required>
+                    @error('title')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
 
-            <div>
-                <label for="description" class="block text-sm font-medium mb-1">Description</label>
-                <textarea id="description" name="description" rows="6" required
-                          class="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring"
-                          placeholder="Write your note here...">{{ old('description') }}</textarea>
-            </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea id="description"
+                              name="description"
+                              rows="6"
+                              class="form-control @error('description') is-invalid @enderror"
+                              placeholder="Write your note here..."
+                              required>{{ old('description') }}</textarea>
+                    @error('description')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
 
-            <div>
-                <label for="image" class="block text-sm font-medium mb-1">Image</label>
-                <input type="file" id="image" name="image"
-                       class="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring">
-            </div>
+                <div class="mb-3">
+                    <label for="image" class="form-label">Image</label>
+                    <input type="file"
+                           id="image"
+                           name="image"
+                           class="form-control @error('image') is-invalid @enderror">
+                    @error('image')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
 
-            <div class="flex items-center gap-3">
-                <button type="submit" class="rounded-lg bg-blue-600 text-white px-4 py-2 hover:bg-blue-700">
-                    Save Note
-                </button>
-                <a href="{{ route('notes.index') }}" class="text-gray-700 underline">Cancel</a>
-            </div>
-        </form>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Save Note
+                    </button>
+                    <a href="{{ route('notes.index') }}" class="btn btn-secondary">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
 @endsection

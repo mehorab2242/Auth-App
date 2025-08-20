@@ -1,55 +1,46 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Home</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 50px;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            margin: 10px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            background-color: #007BFF;
-            color: white;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-    </style>
-</head>
-<body>
-<h2>Welcome to home page</h2>
-@if(session('success'))
-    <div id="flash" class="p-4 text-center bg-green-50 text -green-500 font-bold">
-        {{session('success')}}
-    </div>
-@endif
-<!-- Buttons with routing -->
-@guest
-<button onclick="window.location.href='login'">Login</button>
-<button onclick="window.location.href='register'">Register</button>
-@endguest
-@auth
-    <span class="border-r-2 pr-2">
-    Welcome to the page, {{ Auth::user()->name }}
-</span>
-    <div class="flex gap-2 items-center">
-        <a href="{{ route('notes.index') }}" class="btn">Notes</a>
+@extends('layouts.app')
 
-        <form action="{{ route('logout') }}" method="POST" class="m-0">
-            @csrf
-            <button class="btn">Logout</button>
-        </form>
-    </div>
-@endauth
+@push('body-class')
+    home-bg
+@endpush
 
-</body>
-</html>
+@section('content')
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 80vh;">
+        <div class="home-overlay text-center">
+            <h2 class="mb-4">Welcome to Notes App</h2>
+
+            {{-- Success message --}}
+            @if(session('success'))
+                <div class="alert alert-success w-100 text-center">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @guest
+                <div class="d-flex gap-3 flex-wrap justify-content-center">
+                    <a href="{{ route('login') }}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-box-arrow-in-right"></i> Login
+                    </a>
+                    <a href="{{ route('register') }}" class="btn btn-success btn-lg">
+                        <i class="bi bi-person-plus"></i> Register
+                    </a>
+                </div>
+            @endguest
+
+            @auth
+                <p class="mb-3">Welcome, <strong>{{ Auth::user()->name }}</strong>!</p>
+                <div class="d-flex gap-2 justify-content-center flex-wrap">
+                    <a href="{{ route('notes.index') }}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-journal-text"></i> My Notes
+                    </a>
+                    <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </button>
+                    </form>
+                </div>
+            @endauth
+        </div>
+    </div>
+@endsection

@@ -1,58 +1,58 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow">
-        <div class="flex items-center justify-between mb-4">
-            <h1 class="text-2xl font-bold">My Notes</h1>
-            <a href="{{ route('notes.create') }}"
-               class="rounded-lg bg-blue-600 text-white px-4 py-2 hover:bg-blue-700">
-                + New Note
-            </a>
-        </div>
-
-        {{-- Success message after create/update/delete --}}
-        @if(session('success'))
-            <div class="mb-4 rounded-lg border p-3 bg-green-50 text-green-700">
-                {{ session('success') }}
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h1 class="h4 fw-bold mb-0">My Notes</h1>
+                <a href="{{ route('notes.create') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg"></i> New Note
+                </a>
             </div>
-        @endif
 
-        @if ($notes->count())
-            <ul class="divide-y divide-gray-200">
-                @foreach ($notes as $note)
-                    <li class="py-3 flex items-center justify-between">
-                        <div>
-                            <h2 class="font-semibold text-lg">
-                                <a href="{{ route('notes.show', $note) }}" class="text-blue-600 hover:underline">
-                                    {{ $note->title }}
+            {{-- Success message after create/update/delete --}}
+            @if(session('success'))
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+
+            @if ($notes->count())
+                <ul class="list-group">
+                    @foreach ($notes as $note)
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="mb-1">
+                                    <a href="{{ route('notes.show', $note) }}" class="text-decoration-none text-primary">
+                                        {{ $note->title }}
+                                    </a>
+                                </h5>
+                                <small class="text-muted">
+                                    {{ Str::limit($note->description, 80) }}
+                                </small>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a href="{{ route('notes.edit', $note) }}" class="btn btn-sm btn-warning">
+                                    <i class="bi bi-pencil-square"></i> Edit
                                 </a>
-                            </h2>
-                            <p class="text-gray-600 text-sm">
-                                {{ Str::limit($note->description, 80) }}
-                            </p>
-                        </div>
-                        <div class="flex gap-2">
-                            <a href="{{ route('notes.edit', $note) }}" class="text-sm text-yellow-600 hover:underline">
-                                Edit
-                            </a>
-                            <form action="{{ route('notes.destroy', $note) }}" method="POST"
-                                  onsubmit="return confirm('Are you sure you want to delete this note?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-sm text-red-600 hover:underline">
-                                    Delete
-                                </button>
-                            </form>
-                        </div>
-                    </li>
-                @endforeach
-            </ul>
-
-{{--            <div class="mt-4">--}}
-{{--                {{ $notes->links() }} --}}{{-- Laravel pagination links --}}
-{{--            </div>--}}
-        @else
-            <p class="text-gray-500">No notes found. Create your first note!</p>
-        @endif
+                                <form action="{{ route('notes.destroy', $note) }}" method="POST"
+                                      onsubmit="return confirm('Are you sure you want to delete this note?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            @else
+                <div class="alert alert-info mt-3">
+                    No notes found. Create your first note!
+                </div>
+            @endif
+        </div>
     </div>
 @endsection

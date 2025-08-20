@@ -21,6 +21,7 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::resource('notes', NoteController::class);
+    Route::get('/', [AuthController::class, 'index'])->name('auth.index');
 });
 Route::middleware('guest')->group(function () {
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');

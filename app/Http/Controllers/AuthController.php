@@ -33,7 +33,7 @@ class AuthController extends Controller
         if(Auth::attempt($validated))
         {
             $request->session()->regenerate();
-            return redirect()->intended('/');
+            return redirect()->intended(route('notes.index'));
         }
 
         throw validationException::withMessages([
@@ -58,7 +58,7 @@ class AuthController extends Controller
         // Log the user in
         Auth::login($user);
 
-        return redirect('/'); // Adjust route name if needed
+        return redirect()->route('notes.index');
     }
     public function logout(Request $request)
     {

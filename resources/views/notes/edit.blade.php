@@ -1,66 +1,82 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="max-w-xl mx-auto p-6 bg-white rounded-lg shadow">
-        <h1 class="text-2xl font-bold mb-4">Edit Note</h1>
+    <div class="card shadow-sm mx-auto" style="max-width: 600px;">
+        <div class="card-body">
+            <h1 class="h4 fw-bold mb-4">Edit Note</h1>
 
-        {{-- Validation errors --}}
-        @if ($errors->any())
-            <div class="mb-4 rounded-lg border p-4 bg-red-50">
-                <ul class="list-disc list-inside text-red-700">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+            {{-- Validation errors --}}
+            @if ($errors->any())
+                <div class="alert alert-danger">
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
-        <form action="{{ route('notes.update', $note) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
-            @csrf
-            @method('PUT')
+            <form action="{{ route('notes.update', $note) }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
 
-            <div>
-                <label for="title" class="block text-sm font-medium mb-1">Title</label>
-                <input type="text"
-                       id="title"
-                       name="title"
-                       value="{{ old('title', $note->title) }}"
-                       required
-                       class="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring">
-            </div>
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title</label>
+                    <input type="text"
+                           id="title"
+                           name="title"
+                           value="{{ old('title', $note->title) }}"
+                           class="form-control @error('title') is-invalid @enderror"
+                           required>
+                    @error('title')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
 
-            <div>
-                <label for="description" class="block text-sm font-medium mb-1">Description</label>
-                <textarea id="description"
-                          name="description"
-                          rows="6"
-                          required
-                          class="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring">{{ old('description', $note->description) }}</textarea>
-            </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea id="description"
+                              name="description"
+                              rows="6"
+                              class="form-control @error('description') is-invalid @enderror"
+                              required>{{ old('description', $note->description) }}</textarea>
+                    @error('description')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
 
-            {{-- Image upload --}}
-            <div>
-                <label for="image" class="block text-sm font-medium mb-1">Image</label>
-                <input type="file" id="image" name="image"
-                       class="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring">
+                {{-- Image upload --}}
+                <div class="mb-3">
+                    <label for="image" class="form-label">Image</label>
+                    <input type="file"
+                           id="image"
+                           name="image"
+                           class="form-control @error('image') is-invalid @enderror">
+                    @error('image')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
 
-                {{-- Show existing image if available --}}
-                @if($note->full_image_url)
-                    <div class="mt-3">
-                        <p class="text-sm text-gray-600 mb-1">Current Image:</p>
-                        <img src="{{ $note->full_image_url }}"
-                             alt="Note Image"
-                             class="w-40 h-40 object-cover rounded-lg border">
-                    </div>
-                @endif
-            </div>
+                    {{-- Show existing image if available --}}
+                    @if($note->full_image_url)
+                        <div class="mt-3">
+                            <p class="text-muted small mb-1">Current Image:</p>
+                            <img src="{{ $note->full_image_url }}"
+                                 alt="Note Image"
+                                 class="img-thumbnail"
+                                 style="width: 160px; height: 160px; object-fit: cover;">
+                        </div>
+                    @endif
+                </div>
 
-            <div class="flex items-center gap-3">
-                <button type="submit" class="rounded-lg bg-blue-600 text-white px-4 py-2 hover:bg-blue-700">
-                    Update Note
-                </button>
-                <a href="{{ route('notes.index') }}" class="text-gray-700 underline">Cancel</a>
-            </div>
-        </form>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-arrow-repeat"></i> Update Note
+                    </button>
+                    <a href="{{ route('notes.index') }}" class="btn btn-secondary">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
 @endsection
