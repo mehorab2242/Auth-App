@@ -15,12 +15,23 @@ class NoteController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $notes = Note::where('user_id', Auth::id())->latest()->get();
+            $query = Note::where('user_id', Auth::id());
 
-            if (request()->wantsJson()) {
+            // 🔍 Apply search filter if keyword is present
+            if ($request->has('search') && $request->search != '') {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                });
+            }
+
+            $notes = $query->latest()->paginate(5); // ✅ added pagination
+
+            if ($request->wantsJson()) {
                 return response()->json([
                     'success' => true,
                     'data' => $notes
@@ -32,6 +43,7 @@ class NoteController extends Controller
             return $this->handleException($e, 'Failed to fetch notes');
         }
     }
+
 
     /**
      * Show the form for creating a new resource.

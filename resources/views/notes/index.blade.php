@@ -9,6 +9,18 @@
                     <i class="bi bi-plus-lg"></i> New Note
                 </a>
             </div>
+            <form method="GET" action="{{ route('notes.index') }}" class="mb-4">
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ request('search') }}"
+                    placeholder="Search notes..."
+                    class="form-control w-1/2 d-inline-block"
+                >
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+
+
 
             {{-- Success message after create/update/delete --}}
             @if(session('success'))
@@ -48,6 +60,11 @@
                         </li>
                     @endforeach
                 </ul>
+
+                {{-- ✅ Pagination Links --}}
+                <div class="mt-3">
+                    {{ $notes->links() }}
+                </div>
             @else
                 <div class="alert alert-info mt-3">
                     No notes found. Create your first note!
