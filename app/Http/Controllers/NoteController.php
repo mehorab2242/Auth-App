@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreNoteRequest;
+use App\Http\Requests\UpdateNoteRequest;
 use App\Models\Note;
+use App\Services\NoteService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,16 +15,21 @@ use Mockery\Matcher\Not;
 
 class NoteController extends Controller
 {
+    protected $service;
+
+    public function __construct(NoteService $service)
+    {
+        $this->service = $service;
+    }
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
         try {
-            $query = Note::where('user_id', Auth::id());
+            $query = Note::forUser();
 
-            // 🔍 Apply search filter if keyword is present
-            if ($request->has('search') && $request->search != '') {
+            if ($request->filled('search')) {
                 $search = $request->search;
                 $query->where(function($q) use ($search) {
                     $q->where('title', 'like', "%{$search}%")
@@ -29,16 +37,12 @@ class NoteController extends Controller
                 });
             }
 
-            $notes = $query->latest()->paginate(5); // ✅ added pagination
+            $notes = $query->latest()->paginate(5);
 
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'data' => $notes
-                ]);
-            }
+            return $request->wantsJson()
+                ? response()->json(['success' => true, 'data' => $notes])
+                : view('notes.index', compact('notes'));
 
-            return view('notes.index', ['notes' => $notes]);
         } catch (\Exception $e) {
             return $this->handleException($e, 'Failed to fetch notes');
         }
@@ -56,36 +60,15 @@ class NoteController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreNoteRequest $request)
     {
         try {
-            $validated = $request->validate([
-                'title' => 'required|string|max:255',
-                'description' => 'required|string',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg',
-            ]);
+            $note = $this->service->create($request->validated());
 
-            $imagePath = null;
-            if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('notes', 'public');
-            }
+            return $request->wantsJson()
+                ? response()->json(['success' => true, 'message' => 'Note created successfully', 'data' => $note])
+                : redirect()->route('notes.index')->with('success', 'Note created successfully.');
 
-            $note = Note::create([
-                'user_id' => Auth::id(),
-                'title' => $validated['title'],
-                'description' => $validated['description'],
-                'image' => $imagePath
-            ]);
-
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Note created successfully',
-                    'data' => $note
-                ]);
-            }
-
-            return redirect()->route('notes.index')->with('success', 'Note created successfully.');
         } catch (\Exception $e) {
             return $this->handleException($e, 'Failed to create note');
         }
@@ -127,37 +110,19 @@ class NoteController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Note $note)
+    public function update(UpdateNoteRequest $request, Note $note)
     {
         try {
-            if ($note->user_id !== Auth::id()) {
+            if ($note->user_id !== auth()->id()) {
                 return $this->unauthorizedResponse();
             }
 
-            $validated = $request->validate([
-                'title' => 'required|string|max:255',
-                'description' => 'required|string',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg',
-            ]);
+            $this->service->update($note, $request->validated());
 
-            if ($request->hasFile('image')) {
-                if ($note->image && Storage::disk('public')->exists($note->image)) {
-                    Storage::disk('public')->delete($note->image);
-                }
-                $validated['image'] = $request->file('image')->store('notes', 'public');
-            }
+            return $request->wantsJson()
+                ? response()->json(['success' => true, 'message' => 'Note updated successfully', 'data' => $note])
+                : redirect()->route('notes.index')->with('success', 'Note updated successfully.');
 
-            $note->update($validated);
-
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Note updated successfully',
-                    'data' => $note
-                ]);
-            }
-
-            return redirect()->route('notes.index')->with('success', 'Note updated successfully.');
         } catch (\Exception $e) {
             return $this->handleException($e, 'Failed to update note');
         }
@@ -169,24 +134,16 @@ class NoteController extends Controller
     public function destroy(Note $note)
     {
         try {
-            if ($note->user_id !== Auth::id()) {
+            if ($note->user_id !== auth()->id()) {
                 return $this->unauthorizedResponse();
             }
 
-            if ($note->image && Storage::disk('public')->exists($note->image)) {
-                Storage::disk('public')->delete($note->image);
-            }
+            $this->service->delete($note);
 
-            $note->delete();
+            return request()->wantsJson()
+                ? response()->json(['success' => true, 'message' => 'Note deleted successfully'])
+                : redirect()->route('notes.index')->with('success', 'Note deleted successfully.');
 
-            if (request()->wantsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Note deleted successfully'
-                ]);
-            }
-
-            return redirect()->route('notes.index')->with('success', 'Note deleted successfully.');
         } catch (\Exception $e) {
             return $this->handleException($e, 'Failed to delete note');
         }

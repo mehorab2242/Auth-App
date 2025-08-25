@@ -16,6 +16,8 @@ class Note extends Model
         'image'
     ];
     protected $appends = ['full_image_url'];
+
+
     public function getFullImageUrlAttribute(){
         if ($this->image){
             return asset('storage/'. $this->image);
@@ -29,4 +31,9 @@ class Note extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function scopeForUser($query, $userId = null)
+    {
+        return $query->where('user_id', $userId ?? auth()->id());
+    }
+
 }
